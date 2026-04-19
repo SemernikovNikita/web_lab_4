@@ -1,38 +1,302 @@
-<html>
-  <head>
-    <style>
-/* Сообщения об ошибках и поля с ошибками выводим с красным бордюром. */
-.error {
-  border: 2px solid red;
-}
-    </style>
-  </head>
-  <body>
-
 <?php
-if (!empty($messages)) {
-  print('<div id="messages">');
-  // Выводим все сообщения.
-  foreach ($messages as $message) {
-    print($message);
-  }
-  print('</div>');
+
+header('Content-Type: text/html; charset=UTF-8');
+
+$messages = array();
+
+if (!empty($_COOKIE['save'])) {
+    setcookie('save', '', 100000);
+    $messages[] = '<div class="success-message">Спасибо, результаты сохранены.</div>';
 }
 
-// Далее выводим форму отмечая элементы с ошибками классом error
-// и задавая начальные значения элементов ранее сохраненными.
+$errors = array();
+$errors['full_name'] = !empty($_COOKIE['fio_error']);
+$errors['phone'] = !empty($_COOKIE['phone_error']);
+$errors['email'] = !empty($_COOKIE['email_error']);
+$errors['birth_date'] = !empty($_COOKIE['birth_date_error']);
+$errors['gender'] = !empty($_COOKIE['gender_error']);
+$errors['biography'] = !empty($_COOKIE['biography_error']);
+$errors['agreement'] = !empty($_COOKIE['agreement_error']);
+$errors['languages'] = !empty($_COOKIE['languages_error']);
+
+$error_messages = array();
+
+if ($errors['full_name']) {
+    setcookie('fio_error', '', 100000);
+    setcookie('fio_value', '', 100000);
+    $error_messages['full_name'] = 'ФИО обязательно для заполнения. Используйте только буквы, пробелы и дефисы.';
+}
+
+if ($errors['phone']) {
+    setcookie('phone_error', '', 100000);
+    setcookie('phone_value', '', 100000);
+    $error_messages['phone'] = 'Телефон обязателен. Формат: цифры, знак +, пробелы, дефисы, скобки (10-20 символов).';
+}
+
+if ($errors['email']) {
+    setcookie('email_error', '', 100000);
+    setcookie('email_value', '', 100000);
+    $error_messages['email'] = 'Email обязателен. Формат: example@domain.com';
+}
+
+if ($errors['birth_date']) {
+    setcookie('birth_date_error', '', 100000);
+    setcookie('birth_date_value', '', 100000);
+    $error_messages['birth_date'] = 'Дата рождения обязательна. Формат: ГГГГ-ММ-ДД';
+}
+
+if ($errors['gender']) {
+    setcookie('gender_error', '', 100000);
+    setcookie('gender_value', '', 100000);
+    $error_messages['gender'] = 'Пожалуйста, выберите пол.';
+}
+
+if ($errors['biography']) {
+    setcookie('biography_error', '', 100000);
+    setcookie('biography_value', '', 100000);
+    $error_messages['biography'] = 'Биография не должна превышать 1000 символов.';
+}
+
+if ($errors['agreement']) {
+    setcookie('agreement_error', '', 100000);
+    setcookie('agreement_value', '', 100000);
+    $error_messages['agreement'] = 'Необходимо подтвердить согласие с контрактом.';
+}
+
+if ($errors['languages']) {
+    setcookie('languages_error', '', 100000);
+    setcookie('languages_value', '', 100000);
+    $error_messages['languages'] = 'Выберите хотя бы один язык программирования.';
+}
+
+$values = array();
+$values['full_name'] = empty($_COOKIE['fio_value']) ? '' : htmlspecialchars($_COOKIE['fio_value']);
+$values['phone'] = empty($_COOKIE['phone_value']) ? '' : htmlspecialchars($_COOKIE['phone_value']);
+$values['email'] = empty($_COOKIE['email_value']) ? '' : htmlspecialchars($_COOKIE['email_value']);
+$values['birth_date'] = empty($_COOKIE['birth_date_value']) ? '' : htmlspecialchars($_COOKIE['birth_date_value']);
+$values['gender'] = empty($_COOKIE['gender_value']) ? '' : htmlspecialchars($_COOKIE['gender_value']);
+$values['biography'] = empty($_COOKIE['biography_value']) ? '' : htmlspecialchars($_COOKIE['biography_value']);
+$values['agreement'] = empty($_COOKIE['agreement_value']) ? '' : $_COOKIE['agreement_value'];
+$values['languages'] = empty($_COOKIE['languages_value']) ? array() : explode(',', $_COOKIE['languages_value']);
 ?>
 
-    <form action="" method="POST">
-      <input name="full_name" <?php if ($errors['full_name']) {print 'class="error"';} ?> value="<?php print $values['full_name']; ?>" />
-      <input name="phone" <?php if ($errors['phone']) {print 'class="error"';} ?> value="<?php print $values['phone']; ?>" />
-      <input name="email" <?php if ($errors['email']) {print 'class="error"';} ?> value="<?php print $values['email']; ?>" />
-      <input name="birth_date" <?php if ($errors['birth_date']) {print 'class="error"';} ?> value="<?php print $values['birth_date']; ?>" />
-      <input name="gender" <?php if ($errors['gender']) {print 'class="error"';} ?> value="<?php print $values['gender']; ?>" />
-      <input name="biography" <?php if ($errors['biography']) {print 'class="error"';} ?> value="<?php print $values['biography']; ?>" />
-      <input name="agreement" <?php if ($errors['agreement']) {print 'class="error"';} ?> value="<?php print $values['agreement']; ?>" />
-      <input name="languages" <?php if ($errors['languages']) {print 'class="error"';} ?> value="<?php print $values['languages']; ?>" />
-      <input type="submit" value="ok" />
-    </form>
-  </body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Форма регистрации</title>
+    <style>
+        .error-field {
+            border: 2px solid red !important;
+            background-color: #ffe6e6;
+        }
+        
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .success-message {
+            color: green;
+            background-color: #e8f5e9;
+            border: 1px solid green;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        
+        label {
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        textarea {
+            max-width: 500px;
+            min-height: 100px;
+        }
+        
+        select[multiple] {
+            min-height: 120px;
+        }
+        
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        
+        .radio-group {
+            margin-top: 5px;
+        }
+        
+        .radio-group label {
+            font-weight: normal;
+            margin-right: 15px;
+        }
+        
+        .messages {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="messages">
+    <?php
+    if (!empty($messages)) {
+        foreach ($messages as $message) {
+            echo $message;
+        }
+    }
+    
+    foreach ($error_messages as $field => $message) {
+        echo '<div class="error-message" style="margin-bottom: 10px;">❌ ' . $message . '</div>';
+    }
+    ?>
+</div>
+
+<form action="index.php" method="POST">
+    <h2>Анкета пользователя</h2>
+    
+    <div class="form-group">
+        <label for="full_name">ФИО: <span style="color: red;">*</span></label><br>
+        <input type="text" 
+               id="full_name" 
+               name="full_name" 
+               value="<?php echo $values['full_name']; ?>"
+               placeholder="Иванов Иван Иванович"
+               class="<?php echo $errors['full_name'] ? 'error-field' : ''; ?>">
+        <?php if ($errors['full_name']): ?>
+            <span class="error-message"><?php echo $error_messages['full_name']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label for="phone">Телефон: <span style="color: red;">*</span></label><br>
+        <input type="tel" 
+               id="phone" 
+               name="phone" 
+               value="<?php echo $values['phone']; ?>"
+               placeholder="+7 (123) 456-78-90"
+               class="<?php echo $errors['phone'] ? 'error-field' : ''; ?>">
+        <?php if ($errors['phone']): ?>
+            <span class="error-message"><?php echo $error_messages['phone']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label for="email">E-mail: <span style="color: red;">*</span></label><br>
+        <input type="email" 
+               id="email" 
+               name="email" 
+               value="<?php echo $values['email']; ?>"
+               placeholder="example@domain.com"
+               class="<?php echo $errors['email'] ? 'error-field' : ''; ?>">
+        <?php if ($errors['email']): ?>
+            <span class="error-message"><?php echo $error_messages['email']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label for="birth_date">Дата рождения: <span style="color: red;">*</span></label><br>
+        <input type="date" 
+               id="birth_date" 
+               name="birth_date" 
+               value="<?php echo $values['birth_date']; ?>"
+               class="<?php echo $errors['birth_date'] ? 'error-field' : ''; ?>">
+        <?php if ($errors['birth_date']): ?>
+            <span class="error-message"><?php echo $error_messages['birth_date']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label>Пол: <span style="color: red;">*</span></label><br>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="gender" value="male" 
+                    <?php echo $values['gender'] == 'male' ? 'checked' : ''; ?>> Мужской
+            </label>
+            <label>
+                <input type="radio" name="gender" value="female" 
+                    <?php echo $values['gender'] == 'female' ? 'checked' : ''; ?>> Женский
+            </label>
+        </div>
+        <?php if ($errors['gender']): ?>
+            <span class="error-message"><?php echo $error_messages['gender']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label for="languages">Любимые языки программирования: <span style="color: red;">*</span></label><br>
+        <select name="languages[]" id="languages" multiple size="5"
+                class="<?php echo $errors['languages'] ? 'error-field' : ''; ?>">
+            <option value="PHP" <?php echo in_array('PHP', $values['languages']) ? 'selected' : ''; ?>>PHP</option>
+            <option value="Python" <?php echo in_array('Python', $values['languages']) ? 'selected' : ''; ?>>Python</option>
+            <option value="Java" <?php echo in_array('Java', $values['languages']) ? 'selected' : ''; ?>>Java</option>
+            <option value="JavaScript" <?php echo in_array('JavaScript', $values['languages']) ? 'selected' : ''; ?>>JavaScript</option>
+            <option value="C++" <?php echo in_array('C++', $values['languages']) ? 'selected' : ''; ?>>C++</option>
+            <option value="C#" <?php echo in_array('C#', $values['languages']) ? 'selected' : ''; ?>>C#</option>
+            <option value="Ruby" <?php echo in_array('Ruby', $values['languages']) ? 'selected' : ''; ?>>Ruby</option>
+            <option value="Go" <?php echo in_array('Go', $values['languages']) ? 'selected' : ''; ?>>Go</option>
+        </select>
+        <small>Удерживайте Ctrl (Cmd на Mac) для выбора нескольких языков</small>
+        <?php if ($errors['languages']): ?>
+            <span class="error-message"><?php echo $error_messages['languages']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label for="biography">Биография:</label><br>
+        <textarea id="biography" 
+                  name="biography" 
+                  placeholder="Расскажите немного о себе..."
+                  class="<?php echo $errors['biography'] ? 'error-field' : ''; ?>"><?php echo $values['biography']; ?></textarea>
+        <?php if ($errors['biography']): ?>
+            <span class="error-message"><?php echo $error_messages['biography']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <div class="form-group">
+        <label>
+            <input type="checkbox" name="agreement" value="1" 
+                <?php echo $values['agreement'] == '1' ? 'checked' : ''; ?>>
+            С контрактом ознакомлен(а) <span style="color: red;">*</span>
+        </label>
+        <?php if ($errors['agreement']): ?>
+            <span class="error-message"><?php echo $error_messages['agreement']; ?></span>
+        <?php endif; ?>
+    </div>
+    
+    <input type="submit" name="submit" value="Сохранить">
+</form>
+
+</body>
 </html>
